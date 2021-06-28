@@ -105,6 +105,10 @@ impl Interpreter {
             (0x00, 0x00, 0x0e, 0x00) => self.execute_cls(),
             (0x00, 0x00, 0x0e, 0x0e) => self.execute_ret(),
             (0x01, _, _, _) => self.execute_jp_nnn(nnn),
+            (0x02, _, _, _) => self.execute_call_nnn(nnn),
+            (0x03, _, _, _) => self.execute_se_vx_byte(x, kk),
+            (0x04, _, _, _) => self.execute_sen_vx_byte(x, kk),
+            (0x05, _, _, _) => self.execute_sen_vx_vy(x, y),
             _ => (),
         }
     }
@@ -121,9 +125,34 @@ impl Interpreter {
     fn execute_jp_nnn(&mut self, nnn: u16) {
         self.pc = nnn;
     }
-}
 
-// TODO Read instructions - Decode - Execute
+    fn execute_call_nnn(&mut self, nnn: u16) {
+        self.stack[self.sp as usize] = self.pc;
+        self.sp += 1;
+        self.pc = nnn;
+    }
+
+    fn execute_se_vx_byte(&mut self, x: u8, kk: u8) {
+        if self.v[x as usize] == kk {
+            self.pc += 2;
+        }
+    }
+
+    fn execute_sen_vx_byte(&mut self, x: u8, kk: u8) {
+        if self.v[x as usize] != kk {
+            self.pc += 2;
+        }
+    }
+
+    fn execute_sen_vx_vy(&mut self, x: u8, y: u8) {
+        let vx = self.v[x as usize];
+        let vy = self.v[y as usize];
+
+        if vx == vy {
+            self.pc += 2;
+        }
+    }
+}
 
 fn main() {
     println!("Hello, world!");
@@ -150,5 +179,65 @@ mod tests {
         interpreter.decode(0x16FF);
 
         assert_eq!(interpreter.pc, 0x6FF);
+    }
+
+    #[test]
+    fn test_call_nnn() {
+        let mut interpreter = Interpreter::new();
+        interpreter.sp = 11;
+        interpreter.stack[12] = 0x4444;
+        interpreter.pc = 0x66;
+        interpreter.decode(0x2AAA);
+
+        assert_eq!(interpreter.pc, 0x0AAA);
+        assert_eq!(interpreter.sp, 12);
+        assert_eq!(interpreter.stack[11], 0x66);
+    }
+
+    #[test]
+    fn test_se_vx_byte() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[0] = 0xAA;
+
+        interpreter.fetch();
+        interpreter.decode(0x30AA);
+        assert_eq!(interpreter.pc, 6);
+
+        interpreter.fetch();
+        interpreter.decode(0x30AB);
+        assert_eq!(interpreter.pc, 8);
+    }
+
+    #[test]
+    fn test_sen_vx_byte() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[0] = 0xAA;
+
+        interpreter.fetch();
+        interpreter.decode(0x40AA);
+        assert_eq!(interpreter.pc, 4);
+
+        interpreter.fetch();
+        interpreter.decode(0x40AB);
+        assert_eq!(interpreter.pc, 8);
+    }
+
+    #[test]
+    fn test_sen_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[0] = 0xAA;
+        interpreter.v[1] = 0xAA;
+        interpreter.v[2] = 0x77;
+
+        interpreter.fetch();
+        interpreter.decode(0x501A);
+        assert_eq!(interpreter.pc, 6);
+
+        interpreter.fetch();
+        interpreter.decode(0x502A);
+        assert_eq!(interpreter.pc, 8);
     }
 }
