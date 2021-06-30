@@ -99,17 +99,19 @@ impl Interpreter {
         let nnn = instruction & 0x0FFF;
         let kk = (instruction & 0x00FF) as u8;
 
-        let (x, y, n) = (n2, n3, n4);
+        let (x, y, n) = (n2 as usize, n3 as usize, n4);
 
         match (n1, n2, n3, n4) {
             (0x00, 0x00, 0x0e, 0x00) => self.execute_cls(),
             (0x00, 0x00, 0x0e, 0x0e) => self.execute_ret(),
             (0x01, _, _, _) => self.execute_jp_nnn(nnn),
             (0x02, _, _, _) => self.execute_call_nnn(nnn),
-            (0x03, _, _, _) => self.execute_se_vx_byte(x, kk),
-            (0x04, _, _, _) => self.execute_sen_vx_byte(x, kk),
+            (0x03, _, _, _) => self.execute_se_vx_kk(x, kk),
+            (0x04, _, _, _) => self.execute_sen_vx_kk(x, kk),
             (0x05, _, _, 0x00) => self.execute_se_vx_vy(x, y),
-            (0x05, _, _, _) => self.execute_ld_vx_byte(x, kk),
+            (0x06, _, _, _) => self.execute_ld_vx_kk(x, kk),
+            (0x07, _, _, _) => self.execute_add_vx_kk(x, kk),
+            (0x08, _, _, 0x00) => self.execute_ld_vx_vy(x, y),
             _ => (),
         }
     }
@@ -133,29 +135,37 @@ impl Interpreter {
         self.pc = nnn;
     }
 
-    fn execute_se_vx_byte(&mut self, x: u8, kk: u8) {
-        if self.v[x as usize] == kk {
+    fn execute_se_vx_kk(&mut self, x: usize, kk: u8) {
+        if self.v[x] == kk {
             self.pc += 2;
         }
     }
 
-    fn execute_sen_vx_byte(&mut self, x: u8, kk: u8) {
-        if self.v[x as usize] != kk {
+    fn execute_sen_vx_kk(&mut self, x: usize, kk: u8) {
+        if self.v[x] != kk {
             self.pc += 2;
         }
     }
 
-    fn execute_se_vx_vy(&mut self, x: u8, y: u8) {
-        let vx = self.v[x as usize];
-        let vy = self.v[y as usize];
+    fn execute_se_vx_vy(&mut self, x: usize, y: usize) {
+        let vx = self.v[x];
+        let vy = self.v[y];
 
         if vx == vy {
             self.pc += 2;
         }
     }
 
-    fn execute_ld_vx_byte(&mut self, x: u8, kk: u8) {
-        self.v[x as usize] = kk;
+    fn execute_ld_vx_kk(&mut self, x: usize, kk: u8) {
+        self.v[x] = kk;
+    }
+
+    fn execute_add_vx_kk(&mut self, x: usize, kk: u8) {
+        self.v[x] += kk;
+    }
+
+    fn execute_ld_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[x] = self.v[y];
     }
 }
 
@@ -200,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    fn test_se_vx_byte() {
+    fn test_se_vx_kk() {
         let mut interpreter = Interpreter::new();
         interpreter.pc = 2;
         interpreter.v[0] = 0xAA;
@@ -215,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sen_vx_byte() {
+    fn test_sen_vx_kk() {
         let mut interpreter = Interpreter::new();
         interpreter.pc = 2;
         interpreter.v[0] = 0xAA;
@@ -247,11 +257,29 @@ mod tests {
     }
 
     #[test]
-    fn test_ld_vx_byte() {
+    fn test_ld_vx_kk() {
         let mut interpreter = Interpreter::new();
-        interpreter.fetch();
-        interpreter.decode(0x51AA);
+        interpreter.decode(0x61AA);
 
         assert_eq!(interpreter.v[1], 0xAA);
+    }
+
+    #[test]
+    fn test_add_vx_kk() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[3] = 2;
+        interpreter.decode(0x73AA);
+
+        assert_eq!(interpreter.v[3], 0xAA + 2);
+    }
+
+    #[test]
+    fn test_ld_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[3] = 2;
+        interpreter.v[5] = 5;
+        interpreter.decode(0x8350);
+
+        assert_eq!(interpreter.v[3], 5);
     }
 }
