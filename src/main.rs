@@ -112,6 +112,9 @@ impl Interpreter {
             (0x06, _, _, _) => self.execute_ld_vx_kk(x, kk),
             (0x07, _, _, _) => self.execute_add_vx_kk(x, kk),
             (0x08, _, _, 0x00) => self.execute_ld_vx_vy(x, y),
+            (0x08, _, _, 0x01) => self.execute_or_vx_vy(x, y),
+            (0x08, _, _, 0x02) => self.execute_and_vx_vy(x, y),
+            (0x08, _, _, 0x03) => self.execute_xor_vx_vy(x, y),
             _ => (),
         }
     }
@@ -166,6 +169,18 @@ impl Interpreter {
 
     fn execute_ld_vx_vy(&mut self, x: usize, y: usize) {
         self.v[x] = self.v[y];
+    }
+
+    fn execute_or_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[x] = self.v[x] | self.v[y];
+    }
+
+    fn execute_and_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[x] = self.v[x] & self.v[y];
+    }
+
+    fn execute_xor_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[x] = self.v[x] ^ self.v[y];
     }
 }
 
@@ -281,5 +296,35 @@ mod tests {
         interpreter.decode(0x8350);
 
         assert_eq!(interpreter.v[3], 5);
+    }
+
+    #[test]
+    fn test_or_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 0x0B;
+        interpreter.v[2] = 0x03;
+
+        interpreter.decode(0x8121);
+        assert_eq!(interpreter.v[1], 11);
+    }
+
+    #[test]
+    fn test_and_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 0x0B;
+        interpreter.v[2] = 0x03;
+
+        interpreter.decode(0x8122);
+        assert_eq!(interpreter.v[1], 3);
+    }
+
+    #[test]
+    fn test_xor_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 0x0B;
+        interpreter.v[2] = 0x03;
+
+        interpreter.decode(0x8123);
+        assert_eq!(interpreter.v[1], 8);
     }
 }
