@@ -115,6 +115,8 @@ impl Interpreter {
             (0x08, _, _, 0x01) => self.execute_or_vx_vy(x, y),
             (0x08, _, _, 0x02) => self.execute_and_vx_vy(x, y),
             (0x08, _, _, 0x03) => self.execute_xor_vx_vy(x, y),
+            (0x08, _, _, 0x04) => self.execute_add_vx_vy(x, y),
+            (0x08, _, _, 0x05) => self.execute_sub_vx_vy(x, y),
             _ => (),
         }
     }
@@ -181,6 +183,17 @@ impl Interpreter {
 
     fn execute_xor_vx_vy(&mut self, x: usize, y: usize) {
         self.v[x] = self.v[x] ^ self.v[y];
+    }
+
+    fn execute_add_vx_vy(&mut self, x: usize, y: usize) {
+        let (result, overflow) = self.v[y].overflowing_add(self.v[x]);
+        self.v[15] = if overflow { 1 } else { 0 };
+        self.v[x] = result;
+    }
+
+    fn execute_sub_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[15] = if self.v[x] > self.v[y] { 1 } else { 0 };
+        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
     }
 }
 
@@ -326,5 +339,47 @@ mod tests {
 
         interpreter.decode(0x8123);
         assert_eq!(interpreter.v[1], 8);
+    }
+
+    #[test]
+    fn test_add_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        
+        interpreter.v[1] = 0xF;
+        interpreter.v[2] = 0x3;
+        interpreter.decode(0x8124);
+
+        let result_without_overflow = (0xF as u16 + 0x3 as u16) as u8;
+
+        assert_eq!(interpreter.v[1], result_without_overflow);
+        assert_eq!(interpreter.v[15], 0);
+
+        interpreter.v[1] = 0xFF;
+        interpreter.v[2] = 0x03;
+        interpreter.decode(0x8124);
+
+        let result_with_overflow = (0xFF + 0x03) as u8;
+
+        assert_eq!(interpreter.v[1], result_with_overflow);
+        assert_eq!(interpreter.v[15], 1);
+    }
+
+    #[test]
+    fn test_sub_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        
+        interpreter.v[1] = 0xF;
+        interpreter.v[2] = 0x3;
+        interpreter.decode(0x8125);
+
+        assert_eq!(interpreter.v[1], 0x0C);
+        assert_eq!(interpreter.v[15], 1);
+
+        interpreter.v[1] = 0x14;
+        interpreter.v[2] = 0xFF;
+        interpreter.decode(0x8125);
+
+        assert_eq!(interpreter.v[1], 0x15);
+        assert_eq!(interpreter.v[15], 0);
     }
 }
