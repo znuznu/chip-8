@@ -107,7 +107,7 @@ impl Interpreter {
             (0x01, _, _, _) => self.execute_jp_nnn(nnn),
             (0x02, _, _, _) => self.execute_call_nnn(nnn),
             (0x03, _, _, _) => self.execute_se_vx_kk(x, kk),
-            (0x04, _, _, _) => self.execute_sen_vx_kk(x, kk),
+            (0x04, _, _, _) => self.execute_sne_vx_kk(x, kk),
             (0x05, _, _, 0x00) => self.execute_se_vx_vy(x, y),
             (0x06, _, _, _) => self.execute_ld_vx_kk(x, kk),
             (0x07, _, _, _) => self.execute_add_vx_kk(x, kk),
@@ -120,6 +120,8 @@ impl Interpreter {
             (0x08, _, _, 0x06) => self.execute_shr_vx_vy(x),
             (0x08, _, _, 0x07) => self.execute_subn_vx_vy(x, y),
             (0x08, _, _, 0x0E) => self.execute_shl_vx_vy(x),
+            (0x09, _, _, 0x00) => self.execute_sne_vx_vy(x, y),
+            (0x0A, _, _, _) => self.execute_ld_i_nnn(nnn),
             _ => (),
         }
     }
@@ -149,8 +151,14 @@ impl Interpreter {
         }
     }
 
-    fn execute_sen_vx_kk(&mut self, x: usize, kk: u8) {
+    fn execute_sne_vx_kk(&mut self, x: usize, kk: u8) {
         if self.v[x] != kk {
+            self.pc += 2;
+        }
+    }
+
+    fn execute_sne_vx_vy(&mut self, x: usize, y: usize) {
+        if self.v[x] != self.v[y] {
             self.pc += 2;
         }
     }
@@ -213,6 +221,10 @@ impl Interpreter {
         self.v[15] = (self.v[x] & 0x80) >> 7;
         self.v[x] <<= 1;
     }
+
+    fn execute_ld_i_nnn(&mut self, nnn: u16) {
+        self.i = nnn;
+    }
 }
 
 fn main() {
@@ -271,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sen_vx_kk() {
+    fn test_sne_vx_kk() {
         let mut interpreter = Interpreter::new();
         interpreter.pc = 2;
         interpreter.v[0] = 0xAA;
@@ -283,6 +295,20 @@ mod tests {
         interpreter.fetch();
         interpreter.decode(0x40AB);
         assert_eq!(interpreter.pc, 8);
+    }
+
+    #[test]
+    fn test_sne_vx_vy() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[0] = 0xAA;
+        interpreter.v[1] = 0xAA;
+
+        interpreter.decode(0x9010);
+        assert_eq!(interpreter.pc, 2);
+
+        interpreter.decode(0x9020);
+        assert_eq!(interpreter.pc, 4);
     }
 
     #[test]
@@ -452,5 +478,14 @@ mod tests {
 
         assert_eq!(interpreter.v[15], 1);
         assert_eq!(interpreter.v[1], 0b10000000);
+    }
+
+    #[test]
+    fn test_ld_i_nnn() {
+        let mut interpreter = Interpreter::new();
+
+        interpreter.decode(0xA123);
+
+        assert_eq!(interpreter.i, 0x123);
     }
 }
