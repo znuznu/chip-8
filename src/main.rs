@@ -122,6 +122,7 @@ impl Interpreter {
             (0x08, _, _, 0x0E) => self.execute_shl_vx_vy(x),
             (0x09, _, _, 0x00) => self.execute_sne_vx_vy(x, y),
             (0x0A, _, _, _) => self.execute_ld_i_nnn(nnn),
+            (0x0B, _, _, _) => self.execute_jp_v0_nnn(nnn),
             _ => (),
         }
     }
@@ -224,6 +225,10 @@ impl Interpreter {
 
     fn execute_ld_i_nnn(&mut self, nnn: u16) {
         self.i = nnn;
+    }
+
+    fn execute_jp_v0_nnn(&mut self, nnn: u16) {
+        self.pc = nnn + self.v[0] as u16;
     }
 }
 
@@ -487,5 +492,15 @@ mod tests {
         interpreter.decode(0xA123);
 
         assert_eq!(interpreter.i, 0x123);
+    }
+
+    #[test]
+    fn test_jp_v0_nnn() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[0] = 0x04;
+
+        interpreter.decode(0xB130);
+
+        assert_eq!(interpreter.pc, 0x134);
     }
 }
