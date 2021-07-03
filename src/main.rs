@@ -117,6 +117,9 @@ impl Interpreter {
             (0x08, _, _, 0x03) => self.execute_xor_vx_vy(x, y),
             (0x08, _, _, 0x04) => self.execute_add_vx_vy(x, y),
             (0x08, _, _, 0x05) => self.execute_sub_vx_vy(x, y),
+            (0x08, _, _, 0x06) => self.execute_shr_vx_vy(x),
+            (0x08, _, _, 0x07) => self.execute_subn_vx_vy(x, y),
+            (0x08, _, _, 0x0E) => self.execute_shl_vx_vy(x),
             _ => (),
         }
     }
@@ -169,6 +172,12 @@ impl Interpreter {
         self.v[x] += kk;
     }
 
+    fn execute_add_vx_vy(&mut self, x: usize, y: usize) {
+        let (result, overflow) = self.v[y].overflowing_add(self.v[x]);
+        self.v[15] = if overflow { 1 } else { 0 };
+        self.v[x] = result;
+    }
+
     fn execute_ld_vx_vy(&mut self, x: usize, y: usize) {
         self.v[x] = self.v[y];
     }
@@ -185,15 +194,24 @@ impl Interpreter {
         self.v[x] = self.v[x] ^ self.v[y];
     }
 
-    fn execute_add_vx_vy(&mut self, x: usize, y: usize) {
-        let (result, overflow) = self.v[y].overflowing_add(self.v[x]);
-        self.v[15] = if overflow { 1 } else { 0 };
-        self.v[x] = result;
-    }
-
     fn execute_sub_vx_vy(&mut self, x: usize, y: usize) {
         self.v[15] = if self.v[x] > self.v[y] { 1 } else { 0 };
         self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+    }
+
+    fn execute_subn_vx_vy(&mut self, x: usize, y: usize) {
+        self.v[15] = if self.v[y] > self.v[x] { 1 } else { 0 };
+        self.v[x] = self.v[y].wrapping_sub(self.v[x]);
+    }
+
+    fn execute_shr_vx_vy(&mut self, x: usize) {
+        self.v[15] = self.v[x] & 0x1;
+        self.v[x] >>= 1;
+    }
+
+    fn execute_shl_vx_vy(&mut self, x: usize) {
+        self.v[15] = (self.v[x] & 0x80) >> 7;
+        self.v[x] <<= 1;
     }
 }
 
@@ -344,7 +362,7 @@ mod tests {
     #[test]
     fn test_add_vx_vy() {
         let mut interpreter = Interpreter::new();
-        
+
         interpreter.v[1] = 0xF;
         interpreter.v[2] = 0x3;
         interpreter.decode(0x8124);
@@ -367,7 +385,7 @@ mod tests {
     #[test]
     fn test_sub_vx_vy() {
         let mut interpreter = Interpreter::new();
-        
+
         interpreter.v[1] = 0xF;
         interpreter.v[2] = 0x3;
         interpreter.decode(0x8125);
@@ -381,5 +399,58 @@ mod tests {
 
         assert_eq!(interpreter.v[1], 0x15);
         assert_eq!(interpreter.v[15], 0);
+    }
+
+    #[test]
+    fn test_subn_vx_vy() {
+        let mut interpreter = Interpreter::new();
+
+        interpreter.v[1] = 0xF;
+        interpreter.v[2] = 0x3;
+        interpreter.decode(0x8127);
+
+        assert_eq!(interpreter.v[1], 0xF4);
+        assert_eq!(interpreter.v[15], 0);
+
+        interpreter.v[1] = 0x0E;
+        interpreter.v[2] = 0xFF;
+        interpreter.decode(0x8127);
+
+        assert_eq!(interpreter.v[1], 0xF1);
+        assert_eq!(interpreter.v[15], 1);
+    }
+
+    #[test]
+    fn test_shr_vx_vy() {
+        let mut interpreter = Interpreter::new();
+
+        interpreter.v[1] = 0x0E;
+        interpreter.decode(0x8126);
+
+        assert_eq!(interpreter.v[15], 0);
+        assert_eq!(interpreter.v[1], 0x07);
+
+        interpreter.v[1] = 0x0F;
+        interpreter.decode(0x8126);
+
+        assert_eq!(interpreter.v[15], 1);
+        assert_eq!(interpreter.v[1], 0x07);
+    }
+
+    #[test]
+    fn test_shl_vx_vy() {
+        let mut interpreter = Interpreter::new();
+
+        interpreter.v[1] = 0b01110000;
+        interpreter.decode(0x812E);
+
+        assert_eq!(interpreter.v[15], 0);
+        assert_eq!(interpreter.v[1], 0b11100000);
+
+        interpreter.v[1] = 0b11000000;
+        interpreter.decode(0x812E);
+
+        assert_eq!(interpreter.v[15], 1);
+        assert_eq!(interpreter.v[1], 0b10000000);
     }
 }
