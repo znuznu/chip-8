@@ -1,5 +1,7 @@
+mod keypad;
 mod screen;
 
+use crate::keypad::Keypad;
 use crate::screen::Screen;
 
 const FONTS_SPRITES: [u8; 80] = [
@@ -24,16 +26,6 @@ const FONTS_SPRITES: [u8; 80] = [
 // TODO maybe structs for:
 // - memory
 // - stack -> could use a wrapper for a vec with Result
-
-struct Keypad {
-    keys: [bool; 16],
-}
-
-impl Keypad {
-    fn new() -> Self {
-        Self { keys: [false; 16] }
-    }
-}
 
 struct Interpreter {
     memory: [u8; 4096],
@@ -123,6 +115,10 @@ impl Interpreter {
             (0x09, _, _, 0x00) => self.execute_sne_vx_vy(x, y),
             (0x0A, _, _, _) => self.execute_ld_i_nnn(nnn),
             (0x0B, _, _, _) => self.execute_jp_v0_nnn(nnn),
+            (0x0C, _, _, _) => self.execute_rnd_vx_kk(x, kk),
+            (0x0D, _, _, _) => self.execute_drw_vx_vy_n(x, y, n),
+            (0x0E, _, 0x09, 0x0E) => self.execute_skp_vx(x),
+            (0x0E, _, 0x0A, 0x01) => self.execute_skpn_vx(x),
             _ => (),
         }
     }
@@ -229,6 +225,28 @@ impl Interpreter {
 
     fn execute_jp_v0_nnn(&mut self, nnn: u16) {
         self.pc = nnn + self.v[0] as u16;
+    }
+
+    fn execute_rnd_vx_kk(&mut self, x: usize, kk: u8) {
+        // TODO Use a rng lib
+        let rand = 0;
+        self.v[x] = rand & kk;
+    }
+
+    fn execute_drw_vx_vy_n(&mut self, x: usize, y: usize, n: u8) {
+        todo!();
+    }
+
+    fn execute_skp_vx(&mut self, x: usize) {
+        if self.keypad.is_pressed(self.v[x] as usize) {
+            self.pc += 2;
+        }
+    }
+
+    fn execute_skpn_vx(&mut self, x: usize) {
+        if !self.keypad.is_pressed(self.v[x] as usize) {
+            self.pc += 2;
+        }
     }
 }
 
@@ -502,5 +520,35 @@ mod tests {
         interpreter.decode(0xB130);
 
         assert_eq!(interpreter.pc, 0x134);
+    }
+
+    #[test]
+    fn test_skp_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[1] = 1;
+        interpreter.v[2] = 2;
+        interpreter.keypad.set_down(1);
+
+        interpreter.decode(0xE19E);
+        assert_eq!(interpreter.pc, 4);
+
+        interpreter.decode(0xE29E);
+        assert_eq!(interpreter.pc, 4);
+    }
+
+    #[test]
+    fn test_skpn_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.pc = 2;
+        interpreter.v[1] = 1;
+        interpreter.v[2] = 2;
+        interpreter.keypad.set_down(1);
+
+        interpreter.decode(0xE1A1);
+        assert_eq!(interpreter.pc, 2);
+
+        interpreter.decode(0xE2A1);
+        assert_eq!(interpreter.pc, 4);
     }
 }
