@@ -120,6 +120,7 @@ impl Interpreter {
             (0x0E, _, 0x09, 0x0E) => self.execute_skp_vx(x),
             (0x0E, _, 0x0A, 0x01) => self.execute_skpn_vx(x),
             (0x0F, _, 0x00, 0x07) => self.execute_ld_vx_dt(x),
+            (0x0F, _, 0x00, 0x0A) => self.execute_ld_vx_k(x),
             _ => (),
         }
     }
@@ -252,6 +253,13 @@ impl Interpreter {
 
     fn execute_ld_vx_dt(&mut self, x: usize) {
         self.v[x] = self.dtimer;
+    }
+
+    fn execute_ld_vx_k(&mut self, x: usize) {
+        match self.keypad.get_key_pressed() {
+            Some(i) => self.v[x] = i,
+            None => self.pc -= 2
+        }
     }
 }
 
@@ -564,5 +572,21 @@ mod tests {
         interpreter.decode(0xF107);
 
         assert_eq!(interpreter.v[1], 0x01);
+    }
+
+    #[test]
+    fn test_ld_vx_k() {
+        let mut interpreter = Interpreter::new();
+        interpreter.fetch();
+        interpreter.decode(0xF10A);
+        
+        assert_eq!(interpreter.pc, 0);
+        
+        interpreter.fetch();
+        interpreter.keypad.set_down(1);
+        interpreter.decode(0xF10A);
+
+        assert_eq!(interpreter.pc, 2);
+        assert_eq!(interpreter.v[1], 1);
     }
 }

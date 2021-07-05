@@ -18,4 +18,14 @@ impl Keypad {
     pub fn set_down(&mut self, index: usize) {
         self.keys[index] = true;
     }
+
+    pub fn get_key_pressed(&mut self) -> Option<u8> {
+        for (i, key) in self.keys.iter().enumerate() {
+            if *key {
+                return Some(i as u8);
+            }
+        }
+
+        return None;
+    }
 }
