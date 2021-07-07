@@ -124,6 +124,7 @@ impl Interpreter {
             (0x0F, _, 0x01, 0x05) => self.execute_ld_dt_vx(x),
             (0x0F, _, 0x01, 0x08) => self.execute_ld_st_vx(x),
             (0x0F, _, 0x01, 0x0E) => self.execute_add_i_vx(x),
+            (0x0F, _, 0x02, 0x09) => self.execute_ld_f_vx(x),
             _ => (),
         }
     }
@@ -276,6 +277,11 @@ impl Interpreter {
     fn execute_add_i_vx(&mut self, x: usize) {
         self.i += self.v[x] as u16;
     }
+
+    fn execute_ld_f_vx(&mut self, x: usize) {
+        self.i = (self.v[x] as u16) * 5;
+    }
+
 }
 
 fn main() {
@@ -631,5 +637,14 @@ mod tests {
 
         interpreter.decode(0xF11E);
         assert_eq!(interpreter.i, 13);
+    }
+
+    #[test]
+    fn test_ld_f_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 5;
+        interpreter.decode(0xF129);
+
+        assert_eq!(interpreter.i, 5 * 5);
     }
 }
