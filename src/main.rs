@@ -123,6 +123,7 @@ impl Interpreter {
             (0x0F, _, 0x00, 0x0A) => self.execute_ld_vx_k(x),
             (0x0F, _, 0x01, 0x05) => self.execute_ld_dt_vx(x),
             (0x0F, _, 0x01, 0x08) => self.execute_ld_st_vx(x),
+            (0x0F, _, 0x01, 0x0E) => self.execute_add_i_vx(x),
             _ => (),
         }
     }
@@ -270,6 +271,10 @@ impl Interpreter {
 
     fn execute_ld_st_vx(&mut self, x: usize) {
         self.stimer = self.v[x];
+    }
+
+    fn execute_add_i_vx(&mut self, x: usize) {
+        self.i += self.v[x] as u16;
     }
 }
 
@@ -612,9 +617,19 @@ mod tests {
     #[test]
     fn test_ld_st_vx() {
         let mut interpreter = Interpreter::new();
-        interpreter.v[1] = 5;
+        interpreter.v[1] = 10;
         interpreter.decode(0xF118);
 
-        assert_eq!(interpreter.stimer, 5);
+        assert_eq!(interpreter.stimer, 10);
+    }
+
+    #[test]
+    fn test_add_i_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 9;
+        interpreter.i = 4;
+
+        interpreter.decode(0xF11E);
+        assert_eq!(interpreter.i, 13);
     }
 }
