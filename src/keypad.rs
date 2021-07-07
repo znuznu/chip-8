@@ -8,7 +8,7 @@ impl Keypad {
     }
 
     pub fn is_pressed(&self, index: usize) -> bool {
-        return self.keys[index];
+        self.keys[index]
     }
 
     pub fn set_up(&mut self, index: usize) {
@@ -26,6 +26,6 @@ impl Keypad {
             }
         }
 
-        return None;
+        None
     }
 }

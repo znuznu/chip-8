@@ -79,7 +79,7 @@ impl Interpreter {
         let instruction: u16 = (self.memory[pc] as u16) << 8 | (self.memory[(pc + 1)] as u16);
         self.pc += 2;
 
-        return instruction;
+        instruction
     }
 
     pub fn decode(&mut self, instruction: u16) {
@@ -197,15 +197,15 @@ impl Interpreter {
     }
 
     fn execute_or_vx_vy(&mut self, x: usize, y: usize) {
-        self.v[x] = self.v[x] | self.v[y];
+        self.v[x] |= self.v[y];
     }
 
     fn execute_and_vx_vy(&mut self, x: usize, y: usize) {
-        self.v[x] = self.v[x] & self.v[y];
+        self.v[x] &= self.v[y];
     }
 
     fn execute_xor_vx_vy(&mut self, x: usize, y: usize) {
-        self.v[x] = self.v[x] ^ self.v[y];
+        self.v[x] ^= self.v[y];
     }
 
     fn execute_sub_vx_vy(&mut self, x: usize, y: usize) {
@@ -292,13 +292,15 @@ impl Interpreter {
     }
 
     fn execute_ld_i_vx(&mut self, x: usize) {
-        for index in 0..x + 1 {
+        for index in 0..=x {
             self.memory[self.i as usize + index] = self.v[index];
         }
     }
 
     fn execute_ld_vx_i(&mut self, x: usize) {
-        todo!();
+        for index in 0..=x {
+            self.v[index] = self.memory[self.i as usize + index];
+        }
     }
 }
 
@@ -701,9 +703,23 @@ mod tests {
 
         interpreter.decode(0xF355);
 
-        assert_eq!(interpreter.memory[0], interpreter.v[0]);
-        assert_eq!(interpreter.memory[1], interpreter.v[1]);
-        assert_eq!(interpreter.memory[2], interpreter.v[2]);
-        assert_eq!(interpreter.memory[3], interpreter.v[3]);
+        for i in 0..4 {
+            assert_eq!(interpreter.memory[i], interpreter.v[i]);
+        }
+    }
+
+    #[test]
+    fn test_ld_vx_i() {
+        let mut interpreter = Interpreter::new();
+
+        for i in 0..4 {
+            interpreter.memory[i] = i as u8;
+        }
+
+        interpreter.decode(0xF365);
+
+        for i in 0..4 {
+            assert_eq!(interpreter.v[i], interpreter.memory[i]);
+        }
     }
 }
