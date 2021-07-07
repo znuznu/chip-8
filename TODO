@@ -1,0 +1,6 @@
+[ ] Complete all instructions except the ones related to draw
+[ ] Complete instructions related to draw
+[ ] Find a way to use rng crate with WASM
+[ ] Implements the JS/HTML part
+[ ] Create a fancy interface
+[ ] Clean Rust code (clippy...) 
