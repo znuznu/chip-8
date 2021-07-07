@@ -121,6 +121,7 @@ impl Interpreter {
             (0x0E, _, 0x0A, 0x01) => self.execute_skpn_vx(x),
             (0x0F, _, 0x00, 0x07) => self.execute_ld_vx_dt(x),
             (0x0F, _, 0x00, 0x0A) => self.execute_ld_vx_k(x),
+            (0x0F, _, 0x01, 0x05) => self.execute_ld_dt_vx(x),
             _ => (),
         }
     }
@@ -261,6 +262,10 @@ impl Interpreter {
             None => self.pc -= 2
         }
     }
+
+    fn execute_ld_dt_vx(&mut self, x: usize) {
+        self.dtimer = self.v[x];
+    }    
 }
 
 fn main() {
@@ -589,4 +594,13 @@ mod tests {
         assert_eq!(interpreter.pc, 2);
         assert_eq!(interpreter.v[1], 1);
     }
+
+     #[test]
+     fn test_ld_dt_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 5;
+        interpreter.decode(0xF115);
+
+        assert_eq!(interpreter.dtimer, 5);
+     }
 }
