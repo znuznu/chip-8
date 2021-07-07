@@ -126,6 +126,8 @@ impl Interpreter {
             (0x0F, _, 0x01, 0x0E) => self.execute_add_i_vx(x),
             (0x0F, _, 0x02, 0x09) => self.execute_ld_f_vx(x),
             (0x0F, _, 0x03, 0x03) => self.execute_ld_b_vx(x),
+            (0x0F, _, 0x05, 0x05) => self.execute_ld_i_vx(x),
+            (0x0F, _, 0x06, 0x05) => self.execute_ld_vx_i(x),
             _ => (),
         }
     }
@@ -287,6 +289,16 @@ impl Interpreter {
         self.memory[self.i as usize] = self.v[x] / 100;
         self.memory[(self.i + 1) as usize] = self.v[x] % 100 / 10;
         self.memory[(self.i + 2) as usize] = self.v[x] % 10;
+    }
+
+    fn execute_ld_i_vx(&mut self, x: usize) {
+        for index in 0..x + 1 {
+            self.memory[self.i as usize + index] = self.v[index];
+        }
+    }
+
+    fn execute_ld_vx_i(&mut self, x: usize) {
+        todo!();
     }
 }
 
@@ -680,5 +692,18 @@ mod tests {
         assert_eq!(interpreter.memory[0], 0);
         assert_eq!(interpreter.memory[1], 5);
         assert_eq!(interpreter.memory[2], 6);
+    }
+
+    #[test]
+    fn test_ld_i_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.i = 0;
+
+        interpreter.decode(0xF355);
+
+        assert_eq!(interpreter.memory[0], interpreter.v[0]);
+        assert_eq!(interpreter.memory[1], interpreter.v[1]);
+        assert_eq!(interpreter.memory[2], interpreter.v[2]);
+        assert_eq!(interpreter.memory[3], interpreter.v[3]);
     }
 }
