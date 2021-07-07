@@ -122,6 +122,7 @@ impl Interpreter {
             (0x0F, _, 0x00, 0x07) => self.execute_ld_vx_dt(x),
             (0x0F, _, 0x00, 0x0A) => self.execute_ld_vx_k(x),
             (0x0F, _, 0x01, 0x05) => self.execute_ld_dt_vx(x),
+            (0x0F, _, 0x01, 0x08) => self.execute_ld_st_vx(x),
             _ => (),
         }
     }
@@ -259,13 +260,17 @@ impl Interpreter {
     fn execute_ld_vx_k(&mut self, x: usize) {
         match self.keypad.get_key_pressed() {
             Some(i) => self.v[x] = i,
-            None => self.pc -= 2
+            None => self.pc -= 2,
         }
     }
 
     fn execute_ld_dt_vx(&mut self, x: usize) {
         self.dtimer = self.v[x];
-    }    
+    }
+
+    fn execute_ld_st_vx(&mut self, x: usize) {
+        self.stimer = self.v[x];
+    }
 }
 
 fn main() {
@@ -584,9 +589,9 @@ mod tests {
         let mut interpreter = Interpreter::new();
         interpreter.fetch();
         interpreter.decode(0xF10A);
-        
+
         assert_eq!(interpreter.pc, 0);
-        
+
         interpreter.fetch();
         interpreter.keypad.set_down(1);
         interpreter.decode(0xF10A);
@@ -595,12 +600,21 @@ mod tests {
         assert_eq!(interpreter.v[1], 1);
     }
 
-     #[test]
-     fn test_ld_dt_vx() {
+    #[test]
+    fn test_ld_dt_vx() {
         let mut interpreter = Interpreter::new();
         interpreter.v[1] = 5;
         interpreter.decode(0xF115);
 
         assert_eq!(interpreter.dtimer, 5);
-     }
+    }
+
+    #[test]
+    fn test_ld_st_vx() {
+        let mut interpreter = Interpreter::new();
+        interpreter.v[1] = 5;
+        interpreter.decode(0xF118);
+
+        assert_eq!(interpreter.stimer, 5);
+    }
 }
