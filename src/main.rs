@@ -2,7 +2,7 @@ mod keypad;
 mod screen;
 
 use crate::keypad::Keypad;
-use crate::screen::Screen;
+use crate::screen::{PixelState, Screen};
 
 const FONTS_SPRITES: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -243,7 +243,26 @@ impl Interpreter {
     }
 
     fn execute_drw_vx_vy_n(&mut self, x: usize, y: usize, n: u8) {
-        todo!();
+        self.v[15] = 0;
+        let rows: &[u8] = &self.memory[self.i as usize..(self.i + n as u16) as usize];
+
+        for row_index in 0..n {
+            let row = rows[row_index as usize];
+
+            for bit in 0..8 {
+                if row >> (7 - bit) & 0x01 == 1 {
+                    let new_x = ((self.v[x] + bit) % Screen::WIDTH as u8) as usize;
+                    let new_y = ((self.v[y] + row_index) % Screen::HEIGHT as u8) as usize;
+                    let current_pixel_state = self.screen.get_pixel_state((new_x, new_y));
+                    if let PixelState::On = current_pixel_state {
+                        self.v[15] = 1;
+                        self.screen.update_pixel((new_x, new_y), PixelState::Off);
+                    } else {
+                        self.screen.update_pixel((new_x, new_y), PixelState::On);
+                    }
+                }
+            }
+        }
     }
 
     fn execute_skp_vx(&mut self, x: usize) {

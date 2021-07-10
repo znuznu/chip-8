@@ -1,5 +1,5 @@
 pub struct Screen {
-    pixels: [u8; 2048],
+    pub pixels: [u8; 2048],
 }
 
 pub enum PixelState {
@@ -8,8 +8,8 @@ pub enum PixelState {
 }
 
 impl Screen {
-    const WIDTH: usize = 64;
-    const HEIGHT: usize = 32;
+    pub const WIDTH: usize = 64;
+    pub const HEIGHT: usize = 32;
 
     pub fn new() -> Self {
         Self { pixels: [0; 2048] }
@@ -27,6 +27,14 @@ impl Screen {
         match state {
             PixelState::On => self.pixels[x + y * Screen::WIDTH] = 1,
             PixelState::Off => self.pixels[x + y * Screen::WIDTH] = 0,
+        }
+    }
+
+    pub fn get_pixel_state(&self, (x, y): (usize, usize)) -> PixelState {
+        match self.pixels[x + y * Screen::WIDTH] {
+            0 => PixelState::Off,
+            // It would probably be better to use a Result here...
+            _ => PixelState::On,
         }
     }
 }
