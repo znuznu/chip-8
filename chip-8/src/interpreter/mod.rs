@@ -1,8 +1,8 @@
 mod keypad;
 mod screen;
 
-use crate::interpreter::keypad::Keypad;
-use crate::interpreter::screen::{PixelState, Screen};
+use self::keypad::Keypad;
+use self::screen::{PixelState, Screen};
 
 const FONTS_SPRITES: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -68,6 +68,16 @@ impl Interpreter {
         self.stimer = 0;
         // TODO probably better to avoid a new() here
         self.screen = Screen::new();
+    }
+
+    pub fn tick(&mut self) {
+        if self.dtimer > 0 {
+            self.dtimer -= 1;
+        }
+
+        if self.stimer > 0 {
+            self.stimer -= 1;
+        }
     }
 
     pub fn fetch(&mut self) -> u16 {

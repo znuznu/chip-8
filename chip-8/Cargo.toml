@@ -1,5 +1,6 @@
 [package]
 name = "chip-8"
+author = "znu"
 version = "0.1.0"
 edition = "2018"
 
