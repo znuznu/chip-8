@@ -1,8 +1,8 @@
 mod keypad;
 mod screen;
 
-use crate::keypad::Keypad;
-use crate::screen::{PixelState, Screen};
+use crate::interpreter::keypad::Keypad;
+use crate::interpreter::screen::{PixelState, Screen};
 
 const FONTS_SPRITES: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -23,11 +23,7 @@ const FONTS_SPRITES: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
-// TODO maybe structs for:
-// - memory
-// - stack -> could use a wrapper for a vec with Result
-
-struct Interpreter {
+pub struct Interpreter {
     memory: [u8; 4096],
     v: [u8; 16],
     i: u16,
@@ -321,10 +317,6 @@ impl Interpreter {
             self.v[index] = self.memory[self.i as usize + index];
         }
     }
-}
-
-fn main() {
-    println!("Hello, world!");
 }
 
 #[cfg(test)]
