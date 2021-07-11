@@ -11,7 +11,7 @@ impl Screen {
     pub const WIDTH: usize = 64;
     pub const HEIGHT: usize = 32;
 
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { pixels: [0; 2048] }
     }
 
@@ -38,34 +38,3 @@ impl Screen {
         }
     }
 }
-
-//#[cfg(test)]
-//mod tests {
-//    use super::{PixelState, Screen};
-//
-//    #[test]
-//    fn test_clear() {
-//        let mut screen = Screen::new();
-//        screen.pixels = [1; 2048];
-//
-//        screen.clear();
-//
-//        assert_eq!(screen.pixels, [0; 2048]);
-//    }
-//
-//    #[test]
-//    fn test_update_pixel() {
-//        let mut screen = Screen::new();
-//
-//        screen.update_pixel((0, 0), PixelState::On);
-//        screen.update_pixel((0, 10), PixelState::On);
-//        screen.update_pixel((1, 0), PixelState::On);
-//
-//        let mut expected_pixels = [0; 2048];
-//        expected_pixels[0] = 1;
-//        expected_pixels[10] = 1;
-//        expected_pixels[64] = 1;
-//
-//        assert_eq!(screen.pixels, expected_pixels);
-//    }
-//}

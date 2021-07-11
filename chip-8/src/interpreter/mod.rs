@@ -1,5 +1,5 @@
 mod keypad;
-mod screen;
+pub mod screen;
 
 use self::keypad::Keypad;
 use self::screen::{PixelState, Screen};
@@ -24,20 +24,20 @@ const FONTS_SPRITES: [u8; 80] = [
 ];
 
 pub struct Interpreter {
-    memory: [u8; 4096],
-    v: [u8; 16],
-    i: u16,
-    pc: u16,
-    stack: [u16; 16],
-    sp: u8,
-    dtimer: u8,
-    stimer: u8,
-    screen: Screen,
-    keypad: Keypad,
+    pub memory: [u8; 4096],
+    pub v: [u8; 16],
+    pub i: u16,
+    pub pc: u16,
+    pub stack: [u16; 16],
+    pub sp: u8,
+    pub dtimer: u8,
+    pub stimer: u8,
+    pub screen: Screen,
+    pub keypad: Keypad,
 }
 
 impl Interpreter {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             memory: [0; 4096],
             v: [0; 16],
@@ -78,6 +78,11 @@ impl Interpreter {
         if self.stimer > 0 {
             self.stimer -= 1;
         }
+    }
+
+    pub fn cycle(&mut self) {
+        let instruction = self.fetch();
+        self.decode(instruction);
     }
 
     pub fn fetch(&mut self) -> u16 {
@@ -255,9 +260,9 @@ impl Interpreter {
         for row_index in 0..n {
             let row = rows[row_index as usize];
 
-            for bit in 0..8 {
-                if row >> (7 - bit) & 0x01 == 1 {
-                    let new_x = ((self.v[x] + bit) % Screen::WIDTH as u8) as usize;
+            for row_position in 0..8 {
+                if row >> (7 - row_position) & 0x01 == 1 {
+                    let new_x = ((self.v[x] + row_position) % Screen::WIDTH as u8) as usize;
                     let new_y = ((self.v[y] + row_index) % Screen::HEIGHT as u8) as usize;
                     let current_pixel_state = self.screen.get_pixel_state((new_x, new_y));
                     if let PixelState::On = current_pixel_state {
