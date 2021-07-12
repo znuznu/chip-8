@@ -4,14 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Chip-8 interpreter written in Rust</title>
-    <script></script>
 </head>
 
 <body>
-    <div class="screen">
-        <canvas id="chip-8-canvas" width="64" height="32"></canvas>
+    <div class="heading">
+        <pre class="heading__title">
+ ________  ___  ___  ___  ________        ________     
+|\   ____\|\  \|\  \|\  \|\   __  \      |\   __  \    
+\ \  \___|\ \  \\\  \ \  \ \  \|\  \     \ \  \|\  \   
+ \ \  \    \ \   __  \ \  \ \   ____\     \ \   __  \  
+  \ \  \____\ \  \ \  \ \  \ \  \___|      \ \  \|\  \ 
+   \ \_______\ \__\ \__\ \__\ \__\          \ \_______\
+    \|_______|\|__|\|__|\|__|\|__|           \|_______|
+</pre>
+        <h3 class="heading__subtitle">(c) znu entertainment systems</h3>
+        <h3 class="heading__description">A Chip 8 interpreter written in Rust and compiled in WebAssembly</h3>
     </div>
-    <button id="btn-load-game">Load</button>
+    <!-- <div class="screen">
+        <canvas id="chip-8-canvas" class="chip-8-canvas" width="64" height="32"></canvas>
+    </div> -->
+    <div class="container">
+        <div class="container__kb-layout">
+            <h2 class="container__kb-layout__title">keyboard layout</h2>
+            <div id="kb-layout-grid" class="container__kb-layout__keys-grid"></div>
+        </div>
+        <div class="container__buttons">
+            <button id="btn-load-game" class="button">Load</button>
+        </div>
+
+    </div>
 </body>
 
 </html>

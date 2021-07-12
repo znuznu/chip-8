@@ -28,9 +28,7 @@ function mapCodeToKeypadKey(code) {
 }
 
 async function start() {
-    const interpreter = await WebAssembly.instantiateStreaming(
-        fetch('src/interpreter.wasm')
-    );
+    const interpreter = await WebAssembly.instantiateStreaming(fetch('src/chip_8.wasm'));
     const instanceExports = interpreter.instance.exports;
 
     const interpreterMemory = new Uint8Array(
@@ -48,14 +46,14 @@ async function start() {
     const width = instanceExports.get_width();
     const height = instanceExports.get_height();
 
-    const canvas = document.getElementById('chip-8-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, width, height);
+    // const canvas = document.getElementById('chip-8-canvas');
+    // const ctx = canvas.getContext('2d');
+    // ctx.fillStyle = 'black';
+    // ctx.fillRect(0, 0, width, height);
 
     const loadButton = document.getElementById('btn-load-game');
     loadButton.addEventListener('click', async () => {
-        await loadGame('KeypadTest.ch8');
+        await loadGame('Snake.ch8');
         loop();
     });
 
@@ -67,6 +65,30 @@ async function start() {
     document.addEventListener('keyup', (event) => {
         const keypadKey = mapCodeToKeypadKey(event.code);
         instanceExports.set_key_up(keypadKey);
+    });
+
+    [
+        '1',
+        '2',
+        '3',
+        '4',
+        'Q',
+        'W',
+        'E',
+        'R',
+        'A',
+        'S',
+        'D',
+        'F',
+        'Z',
+        'X',
+        'C',
+        'V'
+    ].forEach((key) => {
+        const div = document.createElement('p');
+        div.className = 'container__kb-layout__keys-grid__item';
+        div.innerHTML = `${key}`;
+        document.getElementById('kb-layout-grid').appendChild(div);
     });
 
     function loop() {
