@@ -248,8 +248,8 @@ impl Interpreter {
     }
 
     fn execute_rnd_vx_kk(&mut self, x: usize, kk: u8) {
-        // TODO Use a rng lib
-        let rand = 0;
+        // I don't want to use #[wasm_bindgen] everywhere in my code, so
+        let rand = 69;
         self.v[x] = rand & kk;
     }
 

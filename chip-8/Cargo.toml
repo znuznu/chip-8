@@ -2,7 +2,11 @@
 name = "chip-8"
 version = "0.1.0"
 edition = "2018"
+authors = ["znu"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
