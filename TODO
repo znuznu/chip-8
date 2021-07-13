@@ -1,7 +1,3 @@
-[x] Complete all instructions except the ones related to draw
-[x] Complete instructions related to draw
-[ ] Find a way to use rng crate with WASM
-[x] Implements the JS/HTML part
+[ ] Find a way to setup rng with WASM
 [ ] Add a Beep sound
-[ ] Create a fancy interface
-[ ] Clean Rust code (clippy...) 
+[ ] Clean Rust code (clippy...) ? 

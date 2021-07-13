@@ -46,14 +46,14 @@ async function start() {
     const width = instanceExports.get_width();
     const height = instanceExports.get_height();
 
-    // const canvas = document.getElementById('chip-8-canvas');
-    // const ctx = canvas.getContext('2d');
-    // ctx.fillStyle = 'black';
-    // ctx.fillRect(0, 0, width, height);
+    const canvas = document.getElementById('chip-8-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
 
     const loadButton = document.getElementById('btn-load-game');
     loadButton.addEventListener('click', async () => {
-        await loadGame('Snake.ch8');
+        await loadGame(`${document.getElementById('slct-game').value}.ch8`);
         loop();
     });
 
@@ -86,9 +86,30 @@ async function start() {
         'V'
     ].forEach((key) => {
         const div = document.createElement('p');
-        div.className = 'container__kb-layout__keys-grid__item';
+        div.className = 'content__kb-layout__keys-grid__item';
         div.innerHTML = `${key}`;
         document.getElementById('kb-layout-grid').appendChild(div);
+    });
+
+    [
+        'Breakout',
+        'Danm8ku',
+        'IBMLogo',
+        'KeypadTest',
+        'Maze',
+        'RPS',
+        'Snake',
+        'SpaceInvaders'
+    ].forEach((game, index) => {
+        const option = document.createElement('option');
+        option.innerText = `${game}`;
+        option.value = `${game}`;
+
+        if (!index) {
+            option.selected = 'selected';
+        }
+
+        document.getElementById('slct-game').appendChild(option);
     });
 
     function loop() {
@@ -108,9 +129,9 @@ async function start() {
 
         for (let i = 0; i < pixelsMemory.length; i++) {
             // See: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
-            imageData.data[i * 4] = pixelsMemory[i] === 1 ? 148 : 0;
-            imageData.data[i * 4 + 1] = pixelsMemory[i] === 1 ? 108 : 0;
-            imageData.data[i * 4 + 2] = pixelsMemory[i] === 1 ? 181 : 0;
+            imageData.data[i * 4] = pixelsMemory[i] === 1 ? 255 : 0;
+            imageData.data[i * 4 + 1] = pixelsMemory[i] === 1 ? 255 : 0;
+            imageData.data[i * 4 + 2] = pixelsMemory[i] === 1 ? 255 : 0;
             imageData.data[i * 4 + 3] = 255;
         }
 
