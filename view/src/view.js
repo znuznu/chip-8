@@ -37,6 +37,8 @@ async function start() {
     const interpreter = await WebAssembly.instantiate(buffer);
     const instanceExports = interpreter.instance.exports;
 
+    let requestAnimationFrameID = null;
+
     const interpreterMemory = new Uint8Array(
         instanceExports.memory.buffer,
         instanceExports.get_memory(),
@@ -60,6 +62,11 @@ async function start() {
     const loadButton = document.getElementById('btn-load-game');
     loadButton.addEventListener('click', async () => {
         await loadGame(`${document.getElementById('slct-game').value}.ch8`);
+
+        if (requestAnimationFrameID) {
+            cancelAnimationFrame(requestAnimationFrameID);
+        }
+
         loop();
     });
 
@@ -127,7 +134,7 @@ async function start() {
 
         render();
 
-        window.requestAnimationFrame(loop);
+        requestAnimationFrameID = window.requestAnimationFrame(loop);
     }
 
     function render() {
