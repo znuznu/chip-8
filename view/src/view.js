@@ -106,13 +106,14 @@ async function start() {
 
     [
         'Breakout',
-        'Danm8ku',
+        // 'Danm8ku', need rnd
         'IBMLogo',
         'KeypadTest',
         'Maze',
         'RPS',
         'Snake',
-        'SpaceInvaders'
+        'SpaceInvaders',
+        'Trip8'
     ].forEach((game, index) => {
         const option = document.createElement('option');
         option.innerText = `${game}`;
