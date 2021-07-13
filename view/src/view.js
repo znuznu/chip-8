@@ -32,7 +32,7 @@ async function start() {
     // const interpreter = await WebAssembly.instantiateStreaming(fetch('src/chip_8.wasm'));
     // const instanceExports = interpreter.instance.exports;
 
-    const response = await fetch("chip_8.wasm");
+    const response = await fetch("src/chip_8.wasm");
     const buffer = await response.arrayBuffer();
     const interpreter = await WebAssembly.instantiate(buffer);
     const instanceExports = interpreter.instance.exports;

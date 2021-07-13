@@ -8,7 +8,7 @@
         "build": "webpack --config webpack/prod.js",
         "prepare": "husky install",
         "fmt": "prettier --write --config .prettierrc src/**/*.js",
-        "deploy": "npm run build && cp src/chip_8.wasm dist && gh-pages -d dist"
+        "deploy": "sh prepare.sh && gh-pages -d dist"
     },
     "repository": {
         "type": "git",
